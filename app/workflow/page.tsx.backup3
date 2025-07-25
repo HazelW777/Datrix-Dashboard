@@ -672,7 +672,7 @@ function WorkflowContent() {
   const [activeResultsTab, setActiveResultsTab] = useState("output");
   // 添加查看任务状态管理
   const [viewedTasks, setViewedTasks] = useState<Record<string, boolean>>({});
-  // 添加每calculations节点的数据表状态管理
+  // 添加每个节点的数据表状态管理
   const [nodeDataTables, setNodeDataTables] = useState<Record<string, any[]>>(
     {}
   );
@@ -1126,7 +1126,7 @@ function WorkflowContent() {
             ) || [],
         }));
 
-        // After最后一calculations任务，展示所有任务运行后的数据
+        // After最后一个任务，展示所有任务运行后的数据
         if (index === tasks.length - 1) {
           // 获取所有已确认任务，依次应用
           const originalData = getCurrentNodeDataTable(selectedNodeData.id);
@@ -1417,7 +1417,7 @@ function WorkflowContent() {
     let processedData = [...originalData];
 
     if (task.action === "remove_duplicates") {
-      // 对于去重操作，直接处理整calculations数据集
+      // 对于去重操作，直接处理整个数据集
       const seen = new Set();
       processedData = originalData.filter((row) => {
         const key = JSON.stringify(row);
@@ -1551,13 +1551,13 @@ function WorkflowContent() {
     if (workflow) {
       const currentNodeIndex = workflow.nodes.findIndex((n) => n.id === nodeId);
       if (currentNodeIndex !== -1) {
-        // 从前一calculations节点或原始数据开始重新计算
+        // 从前一个节点或原始数据开始重新计算
         let baseData: any[] = [];
         if (currentNodeIndex === 0) {
-          // 如果是第一calculations节点，使用原始数据
+          // 如果是第一个节点，使用原始数据
           baseData = generateMockTableDataFromReal(workflow.tableData);
         } else {
-          // 否则使用前一calculations节点的数据
+          // 否则使用前一个节点的数据
           const prevNode = workflow.nodes[currentNodeIndex - 1];
           baseData = getCurrentNodeDataTable(prevNode.id);
         }
@@ -1901,7 +1901,7 @@ function WorkflowContent() {
     return currentData;
   };
 
-  // 应用单calculations任务到数据表
+  // 应用单个任务到数据表
   const applyTaskToData = (data: any[], task: any) => {
     return data.map((row) => {
       const newRow = { ...row };
@@ -2514,7 +2514,11 @@ function WorkflowContent() {
       let operationDetails: any = {};
 
       if (config.operationType === "group_by") {
-        summary = "";
+        summary = `Group By operation completed. Data grouped by ${config.groupByColumns.join(
+          ", "
+        )}. ${processedData.length} groups created from ${
+          currentData.length
+        } rows.`;
         operationDetails = {
           groupByColumns: config.groupByColumns,
           aggregations: config.aggregations,
@@ -2526,7 +2530,7 @@ function WorkflowContent() {
       setResults({
         type: "transformation",
         summary,
-        data: processedData,
+        data: processedData.slice(0, 50), // Show first 50 rows
         operation: {
           type: config.operationType,
           tableName: workflow?.tableName || "table",
@@ -3547,28 +3551,28 @@ function WorkflowContent() {
                                   {/* Transformation Operation Info */}
                                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                                     <h4 className="font-medium text-orange-800 mb-2">
-                                      Data Transformation:{" "}
+                                      数据变换:{" "}
                                       {results.operation.type === "group_by"
-                                        ? "Group By Aggregation"
+                                        ? "分组聚合"
                                         : results.operation.type}
                                     </h4>
                                     <div className="space-y-1 text-sm text-orange-700">
                                       <p>
-                                        • Table: {results.operation.tableName}
+                                        • 数据表: {results.operation.tableName}
                                       </p>
                                       <p>
-                                        • Original Rows:{" "}
+                                        • 原数据行数:{" "}
                                         {results.operation.originalRows.toLocaleString()}
                                       </p>
                                       <p>
-                                        • Result Rows:{" "}
+                                        • 结果行数:{" "}
                                         {results.operation.resultRows.toLocaleString()}
                                       </p>
 
                                       {results.operation.operationDetails
                                         ?.groupByColumns && (
                                         <p>
-                                          • Group By Columns:{" "}
+                                          • 分组列:{" "}
                                           {results.operation.operationDetails.groupByColumns.join(
                                             ", "
                                           )}
@@ -3581,7 +3585,7 @@ function WorkflowContent() {
                                           .aggregations.length > 0 && (
                                           <div>
                                             <p className="font-medium">
-                                              Add Aggregation Calculations
+                                              • 聚合计算:
                                             </p>
                                             <div className="ml-4 space-y-1">
                                               {results.operation.operationDetails.aggregations.map(
@@ -3604,11 +3608,11 @@ function WorkflowContent() {
                                   <div className="border rounded-lg overflow-hidden">
                                     <div className="bg-slate-50 px-4 py-2 border-b">
                                       <h5 className="font-medium text-slate-700 text-sm">
-                                        Aggregated Result Data:{" "}
+                                        聚合结果数据:{" "}
                                         {results.operation.tableName}
                                       </h5>
                                       <p className="text-xs text-slate-500 mt-1">
-                                        Showing first 50 grouped results
+                                        显示前50行分组结果
                                       </p>
                                     </div>
                                     <div className="overflow-x-auto">
@@ -3647,12 +3651,12 @@ function WorkflowContent() {
                                                     .toUpperCase()}
                                                   {isGroupByColumn && (
                                                     <span className="ml-1 text-xs bg-blue-200 px-1 rounded">
-                                                      Grouped
+                                                      分组
                                                     </span>
                                                   )}
                                                   {isAggregatedColumn && (
                                                     <span className="ml-1 text-xs bg-green-200 px-1 rounded">
-                                                      Aggregated
+                                                      聚合
                                                     </span>
                                                   )}
                                                 </TableHead>
@@ -3718,12 +3722,12 @@ function WorkflowContent() {
                                       .aggregations.length > 0 && (
                                       <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                                         <h5 className="font-medium text-slate-700 text-sm mb-2">
-                                          Aggregation Statistics Summary
+                                          聚合统计摘要
                                         </h5>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                                           <div>
                                             <p className="text-slate-600">
-                                              Original Data Rows
+                                              原始数据行数
                                             </p>
                                             <p className="font-medium text-lg">
                                               {results.operation.originalRows.toLocaleString()}
@@ -3731,7 +3735,7 @@ function WorkflowContent() {
                                           </div>
                                           <div>
                                             <p className="text-slate-600">
-                                              Number of Groups
+                                              分组数量
                                             </p>
                                             <p className="font-medium text-lg">
                                               {results.operation.resultRows.toLocaleString()}
@@ -3739,7 +3743,7 @@ function WorkflowContent() {
                                           </div>
                                           <div>
                                             <p className="text-slate-600">
-                                              Data Compression Ratio
+                                              数据压缩比
                                             </p>
                                             <p className="font-medium text-lg">
                                               {(
@@ -4557,429 +4561,7 @@ function WorkflowContent() {
                             })()}
                           </div>
                         )}
-                        {/* Transformation Operations */}
-                        {selectedNodeData.operationType ===
-                          "transformation" && (
-                          <div className="space-y-4">
-                            {(() => {
-                              const config = transformationConfig[
-                                selectedNodeData.id
-                              ] || {
-                                operationType: "",
-                                groupByColumns: [],
-                                aggregations: [],
-                                joinType: "inner",
-                                joinColumn: "",
-                                pivotColumn: "",
-                                valueColumn: "",
-                                pivotValues: [],
-                              };
 
-                              const workflow = tableWorkflows.find((w) =>
-                                w.nodes.some(
-                                  (n) => n.id === selectedNodeData.id
-                                )
-                              );
-                              const columns =
-                                workflow?.tableData?.columns || [];
-
-                              return (
-                                <>
-                                  {/* Operation Type Selection */}
-                                  <div>
-                                    <Label className="text-sm font-medium mb-2 block">
-                                      Select Transformation Operation
-                                    </Label>
-                                    <Select
-                                      value={config.operationType}
-                                      onValueChange={(value) => {
-                                        setTransformationConfig((prev) => ({
-                                          ...prev,
-                                          [selectedNodeData.id]: {
-                                            ...config,
-                                            operationType: value,
-                                          },
-                                        }));
-                                      }}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Choose transformation type" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {secondaryOperations.transformation.map(
-                                          (operation) => (
-                                            <SelectItem
-                                              key={operation.id}
-                                              value={operation.id}
-                                            >
-                                              {operation.name}
-                                            </SelectItem>
-                                          )
-                                        )}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  {/* Group By Configuration */}
-                                  {config.operationType === "group_by" && (
-                                    <div className="space-y-4">
-                                      {/* Group By Columns Selection */}
-                                      <div>
-                                        <Label className="text-sm font-medium mb-2 block">
-                                          Group By Columns
-                                        </Label>
-                                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                                          {columns.map((column) => (
-                                            <div
-                                              key={column.name}
-                                              className="flex items-center space-x-2"
-                                            >
-                                              <input
-                                                type="checkbox"
-                                                id={`groupby-${column.name}`}
-                                                checked={config.groupByColumns.includes(
-                                                  column.name
-                                                )}
-                                                onChange={(e) => {
-                                                  const newColumns = e.target
-                                                    .checked
-                                                    ? [
-                                                        ...config.groupByColumns,
-                                                        column.name,
-                                                      ]
-                                                    : config.groupByColumns.filter(
-                                                        (col) =>
-                                                          col !== column.name
-                                                      );
-
-                                                  setTransformationConfig(
-                                                    (prev) => ({
-                                                      ...prev,
-                                                      [selectedNodeData.id]: {
-                                                        ...config,
-                                                        groupByColumns:
-                                                          newColumns,
-                                                      },
-                                                    })
-                                                  );
-                                                }}
-                                                className="rounded"
-                                              />
-                                              <label
-                                                htmlFor={`groupby-${column.name}`}
-                                                className="text-sm cursor-pointer"
-                                              >
-                                                {column.name} ({column.type})
-                                              </label>
-                                            </div>
-                                          ))}
-                                        </div>
-                                        {config.groupByColumns.length > 0 && (
-                                          <div className="mt-2 p-2 bg-blue-50 rounded-md">
-                                            <p className="text-xs text-blue-600">
-                                              Selected:{" "}
-                                              {config.groupByColumns.join(", ")}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Aggregations Configuration */}
-                                      <div>
-                                        <Label className="text-sm font-medium mb-2 block">
-                                          Aggregation Functions
-                                        </Label>
-                                        <div className="space-y-3">
-                                          {config.aggregations.map(
-                                            (agg, index) => (
-                                              <div
-                                                key={index}
-                                                className="border border-slate-200 rounded-lg p-3 space-y-2"
-                                              >
-                                                <div className="flex items-center justify-between">
-                                                  <span className="text-xs font-medium text-slate-600">
-                                                    Aggregation #{index + 1}
-                                                  </span>
-                                                  <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => {
-                                                      const newAggregations =
-                                                        config.aggregations.filter(
-                                                          (_, i) => i !== index
-                                                        );
-                                                      setTransformationConfig(
-                                                        (prev) => ({
-                                                          ...prev,
-                                                          [selectedNodeData.id]:
-                                                            {
-                                                              ...config,
-                                                              aggregations:
-                                                                newAggregations,
-                                                            },
-                                                        })
-                                                      );
-                                                    }}
-                                                    className="p-1 h-6 w-6"
-                                                  >
-                                                    <X className="w-3 h-3" />
-                                                  </Button>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 gap-2">
-                                                  {/* Original Column Selection */}
-                                                  <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">
-                                                      Select Column
-                                                    </Label>
-                                                    <Select
-                                                      value={agg.column}
-                                                      onValueChange={(
-                                                        value
-                                                      ) => {
-                                                        const newAggregations =
-                                                          [
-                                                            ...config.aggregations,
-                                                          ];
-                                                        newAggregations[index] =
-                                                          {
-                                                            ...agg,
-                                                            column: value,
-                                                          };
-                                                        setTransformationConfig(
-                                                          (prev) => ({
-                                                            ...prev,
-                                                            [selectedNodeData.id]:
-                                                              {
-                                                                ...config,
-                                                                aggregations:
-                                                                  newAggregations,
-                                                              },
-                                                          })
-                                                        );
-                                                      }}
-                                                    >
-                                                      <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Select column" />
-                                                      </SelectTrigger>
-                                                      <SelectContent>
-                                                        {columns.map((col) => (
-                                                          <SelectItem
-                                                            key={col.name}
-                                                            value={col.name}
-                                                          >
-                                                            {col.name} (
-                                                            {col.type})
-                                                          </SelectItem>
-                                                        ))}
-                                                      </SelectContent>
-                                                    </Select>
-                                                  </div>
-
-                                                  {/* Aggregation Function Selection */}
-                                                  <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">
-                                                      Aggregation Function
-                                                    </Label>
-                                                    <Select
-                                                      value={agg.function}
-                                                      onValueChange={(
-                                                        value:
-                                                          | "sum"
-                                                          | "avg"
-                                                          | "count"
-                                                          | "min"
-                                                          | "max"
-                                                          | "first"
-                                                          | "last"
-                                                      ) => {
-                                                        const newAggregations =
-                                                          [
-                                                            ...config.aggregations,
-                                                          ];
-                                                        newAggregations[index] =
-                                                          {
-                                                            ...agg,
-                                                            function: value,
-                                                          };
-                                                        setTransformationConfig(
-                                                          (prev) => ({
-                                                            ...prev,
-                                                            [selectedNodeData.id]:
-                                                              {
-                                                                ...config,
-                                                                aggregations:
-                                                                  newAggregations,
-                                                              },
-                                                          })
-                                                        );
-                                                      }}
-                                                    >
-                                                      <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Select function" />
-                                                      </SelectTrigger>
-                                                      <SelectContent>
-                                                        <SelectItem value="sum">
-                                                          SUM
-                                                        </SelectItem>
-                                                        <SelectItem value="avg">
-                                                          AVERAGE
-                                                        </SelectItem>
-                                                        <SelectItem value="count">
-                                                          COUNT
-                                                        </SelectItem>
-                                                        <SelectItem value="min">
-                                                          MIN
-                                                        </SelectItem>
-                                                        <SelectItem value="max">
-                                                          MAX
-                                                        </SelectItem>
-                                                        <SelectItem value="first">
-                                                          FIRST
-                                                        </SelectItem>
-                                                        <SelectItem value="last">
-                                                          LAST
-                                                        </SelectItem>
-                                                      </SelectContent>
-                                                    </Select>
-                                                  </div>
-
-                                                  {/* New Column Name */}
-                                                  <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">
-                                                      Column Alias (Optional)
-                                                    </Label>
-                                                    <Input
-                                                      placeholder="e.g., Total_Amount"
-                                                      value={agg.alias || ""}
-                                                      onChange={(e) => {
-                                                        const newAggregations =
-                                                          [
-                                                            ...config.aggregations,
-                                                          ];
-                                                        newAggregations[index] =
-                                                          {
-                                                            ...agg,
-                                                            alias:
-                                                              e.target.value,
-                                                          };
-                                                        setTransformationConfig(
-                                                          (prev) => ({
-                                                            ...prev,
-                                                            [selectedNodeData.id]:
-                                                              {
-                                                                ...config,
-                                                                aggregations:
-                                                                  newAggregations,
-                                                              },
-                                                          })
-                                                        );
-                                                      }}
-                                                      className="h-8 text-xs"
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                {/* Preview */}
-                                                {agg.column && agg.function && (
-                                                  <div className="mt-2 p-2 bg-green-50 rounded-md">
-                                                    <p className="text-xs text-green-600">
-                                                      Preview: {agg.column} →{" "}
-                                                      {agg.function.toUpperCase()}
-                                                      {agg.alias &&
-                                                        ` (alias: ${agg.alias})`}
-                                                    </p>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            )
-                                          )}
-
-                                          {/* Add New Aggregation Button */}
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => {
-                                              const newAggregations = [
-                                                ...config.aggregations,
-                                                {
-                                                  column: "",
-                                                  function: "count" as const,
-                                                  alias: "",
-                                                },
-                                              ];
-                                              setTransformationConfig(
-                                                (prev) => ({
-                                                  ...prev,
-                                                  [selectedNodeData.id]: {
-                                                    ...config,
-                                                    aggregations:
-                                                      newAggregations,
-                                                  },
-                                                })
-                                              );
-                                            }}
-                                            className="w-full border-dashed"
-                                          >
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Aggregation Function
-                                          </Button>
-
-                                          {config.aggregations.length === 0 && (
-                                            <div className="text-center py-4 text-slate-500 text-xs">
-                                              Please add at least one
-                                              aggregation function
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      {/* Configuration Summary */}
-                                      {config.groupByColumns.length > 0 &&
-                                        config.aggregations.length > 0 && (
-                                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                            <h6 className="font-medium text-slate-700 text-sm mb-2">
-                                              Configuration Summary
-                                            </h6>
-                                            <div className="space-y-1 text-xs text-slate-600">
-                                              <p>
-                                                <strong>
-                                                  Group By Columns:
-                                                </strong>{" "}
-                                                {config.groupByColumns.join(
-                                                  ", "
-                                                )}
-                                              </p>
-                                              <p>
-                                                <strong>Aggregations:</strong>{" "}
-                                                {config.aggregations.length}{" "}
-                                                functions
-                                              </p>
-                                              <div className="mt-2 space-y-1">
-                                                {config.aggregations.map(
-                                                  (agg, index) => (
-                                                    <p
-                                                      key={index}
-                                                      className="text-xs text-slate-500"
-                                                    >
-                                                      • {agg.column} →{" "}
-                                                      {agg.function.toUpperCase()}
-                                                      {agg.alias &&
-                                                        ` (${agg.alias})`}
-                                                    </p>
-                                                  )
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
-                                    </div>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        )}
                         {/* Column/Row Operations with Tabs */}
                         {selectedNodeData.operationType ===
                           "column_row_operation" && (
@@ -5854,7 +5436,68 @@ function WorkflowContent() {
                           </div>
                         )}
 
-                        {/* Other operation types with standard selection - REMOVED DUPLICATE */}
+                        {/* Other operation types with standard selection */}
+                        {selectedNodeData.operationType &&
+                          selectedNodeData.operationType !== "cleaning" &&
+                          selectedNodeData.operationType !== "modeling" &&
+                          selectedNodeData.operationType !==
+                            "column_row_operation" &&
+                          secondaryOperations[
+                            selectedNodeData.operationType as keyof typeof secondaryOperations
+                          ] && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label className="text-sm font-medium mb-2 block">
+                                  Select Operation
+                                </Label>
+                                <Select
+                                  value={
+                                    selectedNodeData.secondaryOperation || ""
+                                  }
+                                  onValueChange={(value) => {
+                                    updateNodeConfig(selectedNodeData.id, {
+                                      secondaryOperation: value,
+                                    });
+                                    setTableWorkflows((prev) =>
+                                      prev.map((workflow) => ({
+                                        ...workflow,
+                                        nodes: workflow.nodes.map((node) =>
+                                          node.id === selectedNodeData.id
+                                            ? {
+                                                ...node,
+                                                secondaryOperation: value,
+                                              }
+                                            : node
+                                        ),
+                                      }))
+                                    );
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Choose operation type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {(
+                                      secondaryOperations[
+                                        selectedNodeData.operationType as keyof typeof secondaryOperations
+                                      ] as Array<{
+                                        id: string;
+                                        name: string;
+                                        description: string;
+                                      }>
+                                    ).map((operation) => (
+                                      <SelectItem
+                                        key={operation.id}
+                                        value={operation.id}
+                                      >
+                                        {operation.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
                       </div>
 
                       {/* Apply & Run Button for Column/Row Operations */}
@@ -5933,10 +5576,9 @@ function WorkflowContent() {
                         </div>
                       )}
 
-                      {/* Apply & Run Button - Only for other operations, not duplicated */}
+                      {/* Apply & Run Button - Fixed at bottom */}
                       {selectedNodeData.operationType !== "cleaning" &&
                         selectedNodeData.operationType !== "modeling" &&
-                        selectedNodeData.operationType !== "transformation" &&
                         selectedNodeData.operationType !==
                           "column_row_operation" && (
                           <div className="pt-4 border-t flex-shrink-0">
